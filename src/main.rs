@@ -6,9 +6,8 @@ mod scheduler;
 use actix_web::{web, App, HttpServer};
 use dotenvy::dotenv;
 use std::env;
-use tokio;
 
-use crate::database::database::connect_mongodb;
+use crate::database::connect_mongodb;
 use crate::handlers::currency::get_currency;
 use crate::handlers::default::default;
 use crate::handlers::price::{get_charts, get_price};
