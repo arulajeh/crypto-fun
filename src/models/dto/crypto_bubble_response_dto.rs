@@ -1,5 +1,4 @@
 use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CryptoDataDto {
@@ -15,12 +14,12 @@ pub struct CryptoDataDto {
     pub marketcap: Option<u64>,
     pub volume: Option<u64>,
     pub cg_id: Option<String>,
-    pub symbols: HashMap<String, String>,
+    pub symbols: Symbols,
     pub performance: Performance,
     #[serde(rename = "rankDiffs")]
     pub rank_diffs: RankDiffs,
     #[serde(rename = "exchangePrices")]
-    pub exchange_prices: HashMap<String, Option<f64>>,
+    pub exchange_prices: ExchangePrices,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -49,4 +48,36 @@ pub struct RankDiffs {
     pub min1: Option<i32>,
     pub month: Option<i32>,
     pub year: Option<i32>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Symbols {
+    pub binance: Option<String>,
+    pub bingx: Option<String>,
+    pub bitget: Option<String>,
+    pub bitmart: Option<String>,
+    pub bybit: Option<String>,
+    pub coinbase: Option<String>,
+    pub cryptocom: Option<String>,
+    pub gateio: Option<String>,
+    pub kraken: Option<String>,
+    pub kucoin: Option<String>,
+    pub mexc: Option<String>,
+    pub okx: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ExchangePrices {
+    pub binance: Option<f64>,
+    pub bingx: Option<f64>,
+    pub bitget: Option<f64>,
+    pub bitmart: Option<f64>,
+    pub bybit: Option<f64>,
+    pub coinbase: Option<f64>,
+    pub cryptocom: Option<f64>,
+    pub gateio: Option<f64>,
+    pub kraken: Option<f64>,
+    pub kucoin: Option<f64>,
+    pub mexc: Option<f64>,
+    pub okx: Option<f64>,
 }
