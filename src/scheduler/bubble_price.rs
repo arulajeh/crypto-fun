@@ -34,10 +34,11 @@ pub async fn fetch_bubble_price(db: Arc<Database>) {
 
 async fn fetch_data(
     host: &str,
-    currency_names: &Vec<String>,
+    currency_names: &[String],
     price_repository: Arc<PriceRepository>,
 ) {
-    for currency_name in currency_names.iter().cloned() {
+    let currencies = currency_names.to_owned();
+    for currency_name in currencies {
         let host = host.to_string();
         let price_repository = Arc::clone(&price_repository);
 

@@ -1,26 +1,12 @@
 use crate::models::dto::chart_response_dto::ChartResponseDto;
 use crate::models::dto::crypto_bubble_response_dto::CryptoDataDto;
 use crate::models::request::charts_request::GetChartsRequest;
-use crate::models::request::pagination_request::PaginationRequest;
 use crate::models::request::price_request::GetPriceRequest;
 use crate::models::response::api_response::ApiResponse;
 use crate::repositories::AppRepositories;
+use crate::utils::commons::calculate_pagination;
 use actix_web::{post, web, HttpResponse, Responder};
 use serde_json::Value;
-
-fn calculate_pagination(pagination: Option<PaginationRequest>) -> (u64, u64) {
-    let default_limit = 10;
-    let default_page = 1;
-    let (page, limit) = match pagination {
-        Some(p) => (
-            p.page.unwrap_or(default_page).max(1),
-            p.limit.unwrap_or(default_limit).max(1),
-        ),
-        None => (default_page, default_limit),
-    };
-    let skip = (page - 1) * limit;
-    (skip, limit)
-}
 
 #[post("/price")]
 pub async fn get_price(
@@ -30,7 +16,7 @@ pub async fn get_price(
     let (skip, limit) = calculate_pagination(request.pagination.clone());
     match repository
         .price
-        .get_prices_by_currency_paginated(&*request.currency, skip, limit)
+        .get_prices_by_currency_paginated(&request.currency, skip, limit)
         .await
     {
         Ok(data) => {

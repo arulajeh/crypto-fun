@@ -3,6 +3,7 @@ mod handlers;
 mod models;
 mod repositories;
 mod scheduler;
+mod utils;
 
 use crate::database::connect_mongodb;
 use crate::handlers::currency::get_currency;
