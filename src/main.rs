@@ -4,6 +4,7 @@ mod models;
 mod repositories;
 mod scheduler;
 mod utils;
+mod constant;
 
 use crate::database::connect_mongodb;
 use crate::handlers::currency::get_currency;

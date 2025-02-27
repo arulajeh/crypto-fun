@@ -32,11 +32,7 @@ pub async fn fetch_bubble_price(db: Arc<Database>) {
     }
 }
 
-async fn fetch_data(
-    host: &str,
-    currency_names: &[String],
-    price_repository: Arc<PriceRepository>,
-) {
+async fn fetch_data(host: &str, currency_names: &[String], price_repository: Arc<PriceRepository>) {
     let currencies = currency_names.to_owned();
     for currency_name in currencies {
         let host = host.to_string();
@@ -48,7 +44,6 @@ async fn fetch_data(
                 Ok(response) => match response.json::<Vec<CryptoDataDto>>().await {
                     Ok(data) => {
                         for crypto_price in data {
-                            let crypto_name = crypto_price.name.clone();
                             let price = PriceCollection {
                                 object_id: None,
                                 id: crypto_price.id,
@@ -118,12 +113,7 @@ async fn fetch_data(
                                 },
                             };
                             match price_repository.save_or_update(price).await {
-                                Ok(_) => {
-                                    println!(
-                                        "Success to save data for {}:{:?}",
-                                        currency_name, crypto_name
-                                    );
-                                }
+                                Ok(_) => {}
                                 Err(e) => {
                                     println!("Error: {:?}", e);
                                     println!("Failed to fetch data for {}", currency_name);

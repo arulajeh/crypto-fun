@@ -1,10 +1,10 @@
+use crate::constant::response_code::{GENERAL_ERROR_CODE, SUCCESS_CODE, SUCCESS_MESSAGE};
 use crate::models::dto::chart_response_dto::ChartResponseDto;
 use crate::models::dto::crypto_bubble_response_dto::CryptoDataDto;
 use crate::models::request::charts_request::GetChartsRequest;
 use crate::models::request::price_request::GetPriceRequest;
-use crate::models::response::api_response::ApiResponse;
 use crate::repositories::AppRepositories;
-use crate::utils::commons::calculate_pagination;
+use crate::utils::commons::{calculate_pagination, construct_response};
 use actix_web::{post, web, HttpResponse, Responder};
 use serde_json::Value;
 
@@ -41,17 +41,19 @@ pub async fn get_price(
                     exchange_prices: data.exchange_prices,
                 })
                 .collect();
-            HttpResponse::Ok().json(ApiResponse::<Vec<CryptoDataDto>> {
-                status: true,
-                message: "Success".to_string(),
-                data: Option::from(list_data),
-            })
+            HttpResponse::Ok().json(construct_response::<Vec<CryptoDataDto>>(
+                Some(list_data),
+                SUCCESS_MESSAGE,
+                SUCCESS_CODE,
+            ))
         }
-        Err(_) => HttpResponse::InternalServerError().json(ApiResponse::<Value> {
-            status: false,
-            message: "Failed to fetch data".to_string(),
-            data: None,
-        }),
+        Err(e) => {
+            HttpResponse::InternalServerError().json(construct_response::<Value>(
+                None,
+                &e.to_string(),
+                GENERAL_ERROR_CODE,
+            ))
+        },
     }
 }
 
@@ -94,24 +96,25 @@ pub async fn get_charts(request: web::Json<GetChartsRequest>) -> impl Responder 
 
     match reqwest::get(url).await {
         Ok(response) => match response.json::<Vec<ChartResponseDto>>().await {
-            Ok(data) => HttpResponse::Ok().json(ApiResponse::<Vec<ChartResponseDto>> {
-                status: true,
-                message: "Success".to_string(),
-                data: Option::from(data),
-            }),
+            Ok(data) => HttpResponse::Ok().json(construct_response::<Vec<ChartResponseDto>>(
+                Some(data),
+                SUCCESS_MESSAGE,
+                SUCCESS_CODE,
+            )),
             Err(e) => {
-                println!("Error: {:?}", e);
-                HttpResponse::InternalServerError().json(ApiResponse::<Value> {
-                    status: false,
-                    message: "Failed to fetch data".to_string(),
-                    data: None,
-                })
+                HttpResponse::InternalServerError().json(construct_response::<Value>(
+                    None,
+                    &e.to_string(),
+                    GENERAL_ERROR_CODE,
+                ))
             }
         },
-        Err(_) => HttpResponse::InternalServerError().json(ApiResponse::<Value> {
-            status: false,
-            message: "Failed to fetch data".to_string(),
-            data: None,
-        }),
+        Err(e) => {
+            HttpResponse::InternalServerError().json(construct_response::<Value>(
+                None,
+                &e.to_string(),
+                GENERAL_ERROR_CODE,
+            ))
+        },
     }
 }

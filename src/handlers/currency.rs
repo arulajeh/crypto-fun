@@ -1,7 +1,9 @@
-use crate::models::response::api_response::ApiResponse;
+use crate::constant::response_code::{GENERAL_ERROR_CODE, SUCCESS_CODE, SUCCESS_MESSAGE};
 use crate::models::response::currency_response::CurrencyResponse;
 use crate::repositories::AppRepositories;
+use crate::utils::commons::construct_response;
 use actix_web::{get, web, HttpResponse, Responder};
+use serde_json::Value;
 
 #[get("/currency")]
 pub async fn get_currency(repository: web::Data<AppRepositories>) -> impl Responder {
@@ -17,18 +19,13 @@ pub async fn get_currency(repository: web::Data<AppRepositories>) -> impl Respon
                     type_: data.c_type,
                 })
                 .collect();
-            HttpResponse::Ok().json(ApiResponse::<Vec<CurrencyResponse>> {
-                status: true,
-                message: "Success".to_string(),
-                data: Some(list_currency),
-            })
-        },
-        Err(_) => {
-            HttpResponse::InternalServerError().json(ApiResponse::<Vec<CurrencyResponse>> {
-                status: false,
-                message: "Failed to fetch data".to_string(),
-                data: None,
-            })
+            HttpResponse::Ok().json(construct_response::<Vec<CurrencyResponse>>(
+                Some(list_currency),
+                SUCCESS_MESSAGE,
+                SUCCESS_CODE,
+            ))
         }
+        Err(e) => HttpResponse::InternalServerError()
+            .json(construct_response::<Value>(None, &e.to_string(), GENERAL_ERROR_CODE)),
     }
 }

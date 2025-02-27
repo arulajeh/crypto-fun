@@ -5,5 +5,8 @@ use serde_json::Value;
 pub struct ApiResponse<T = Value> {
     pub status: bool,
     pub message: String,
-    pub data: Option<T>,
+    pub payload: Option<T>,
+    pub code: String,
+    #[serde(rename = "timeStamp")]
+    pub time_stamp: String
 }
