@@ -39,7 +39,7 @@ async fn fetch_data(host: &str, currency_names: &[String], price_repository: Arc
         let price_repository = Arc::clone(&price_repository);
 
         tokio::spawn(async move {
-            let url = format!("{}/bubbles1000.{}.json", host, currency_name.to_lowercase());
+            let url = format!("{}/data/bubbles1000.{}.json", host, currency_name.to_lowercase());
             match reqwest::get(url).await {
                 Ok(response) => match response.json::<Vec<CryptoDataDto>>().await {
                     Ok(data) => {

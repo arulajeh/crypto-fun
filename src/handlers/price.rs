@@ -1,13 +1,17 @@
 use crate::constant::response_code::{GENERAL_ERROR_CODE, SUCCESS_CODE, SUCCESS_MESSAGE};
 use crate::models::request::charts_request::GetChartsRequest;
 use crate::models::request::price_request::GetPriceRequest;
-use crate::models::response::chart_response::ChartResponse;
+use crate::models::response::chart_response::{ChartResponse, ChartTicks};
 use crate::models::response::price_response::PriceResponse;
 use crate::repositories::AppRepositories;
-use crate::utils::commons::{calculate_pagination, construct_pagination_response, construct_response, pagination_response};
+use crate::utils::commons::{
+    calculate_pagination, construct_pagination_response, construct_response, pagination_response,
+};
 use actix_web::{post, web, HttpResponse, Responder};
 use bson::doc;
+use futures::future::join_all;
 use serde_json::Value;
+use std::env;
 
 #[post("/price")]
 pub async fn get_price(
@@ -21,7 +25,11 @@ pub async fn get_price(
         .await
     {
         Ok(data) => {
-            let total_data = repository.price.counts(doc! {"currency": &request.currency}).await.unwrap_or(0);
+            let total_data = repository
+                .price
+                .counts(doc! {"currency": &request.currency})
+                .await
+                .unwrap_or(0);
             let list_data: Vec<PriceResponse> = data
                 .into_iter()
                 .map(|data| PriceResponse {
@@ -50,74 +58,49 @@ pub async fn get_price(
                 pagination_response(total_data, page, limit),
             ))
         }
-        Err(e) => {
-            HttpResponse::InternalServerError().json(construct_response::<Value>(
-                None,
-                &e.to_string(),
-                GENERAL_ERROR_CODE,
-            ))
-        },
+        Err(e) => HttpResponse::InternalServerError().json(construct_response::<Value>(
+            None,
+            &e.to_string(),
+            GENERAL_ERROR_CODE,
+        )),
     }
 }
 
 #[post("/charts")]
 pub async fn get_charts(request: web::Json<GetChartsRequest>) -> impl Responder {
-    let url = format!(
-        "https://cryptobubbles.net/backend/data/charts/{}/{}/{}.json",
-        request.interval,
-        request.from.to_lowercase(),
-        request.to.to_uppercase()
-    );
-    // create urls yang bedanya pada satuan datanya hour, day, week, month, year
-    // let urls = vec![
-    //     format!(
-    //         "https://cryptobubbles.net/backend/data/charts/hour/{}/{}.json",
-    //         request.from.to_lowercase(),
-    //         request.to.to_uppercase()
-    //     ),
-    //     format!(
-    //         "https://cryptobubbles.net/backend/data/charts/day/{}/{}.json",
-    //         request.from.to_lowercase(),
-    //         request.to.to_uppercase()
-    //     ),
-    //     format!(
-    //         "https://cryptobubbles.net/backend/data/charts/week/{}/{}.json",
-    //         request.from.to_lowercase(),
-    //         request.to.to_uppercase()
-    //     ),
-    //     format!(
-    //         "https://cryptobubbles.net/backend/data/charts/month/{}/{}.json",
-    //         request.from.to_lowercase(),
-    //         request.to.to_uppercase()
-    //     ),
-    //     format!(
-    //         "https://cryptobubbles.net/backend/data/charts/year/{}/{}.json",
-    //         request.from.to_lowercase(),
-    //         request.to.to_uppercase()
-    //     ),
-    // ];
+    let source_host = env::var("DATA_SOURCE_HOST").expect("DATA_SOURCE_HOST must be set");
+    let intervals = vec!["hour", "day", "week", "month", "year"];
+    let futures = intervals.into_iter().map(|interval| {
+        let source_host = source_host.clone();
+        let from = request.from.to_lowercase();
+        let to = request.to.to_uppercase();
 
-    match reqwest::get(url).await {
-        Ok(response) => match response.json::<Vec<ChartResponse>>().await {
-            Ok(data) => HttpResponse::Ok().json(construct_response::<Vec<ChartResponse>>(
-                Some(data),
-                SUCCESS_MESSAGE,
-                SUCCESS_CODE,
-            )),
-            Err(e) => {
-                HttpResponse::InternalServerError().json(construct_response::<Value>(
-                    None,
-                    &e.to_string(),
-                    GENERAL_ERROR_CODE,
-                ))
+        tokio::spawn(async move {
+            let url = format!(
+                "{}/data/charts/{}/{}/{}.json",
+                source_host, interval, from, to
+            );
+
+            let data = match reqwest::get(&url).await {
+                Ok(response) => (response.json::<Vec<ChartTicks>>().await).unwrap_or_default(),
+                Err(_) => vec![],
+            };
+
+            ChartResponse {
+                interval: interval.to_string(),
+                data,
             }
-        },
-        Err(e) => {
-            HttpResponse::InternalServerError().json(construct_response::<Value>(
-                None,
-                &e.to_string(),
-                GENERAL_ERROR_CODE,
-            ))
-        },
-    }
+        })
+    });
+
+    let results: Vec<ChartResponse> = join_all(futures)
+        .await
+        .into_iter()
+        .filter_map(|res| res.ok())
+        .collect();
+    HttpResponse::Ok().json(construct_response::<Vec<ChartResponse>>(
+        Some(results),
+        SUCCESS_MESSAGE,
+        SUCCESS_CODE,
+    ))
 }
