@@ -1,10 +1,10 @@
 use crate::constant::response_code::{GENERAL_ERROR_CODE, SUCCESS_CODE, SUCCESS_MESSAGE};
-use crate::models::dto::chart_response_dto::ChartResponseDto;
 use crate::models::request::charts_request::GetChartsRequest;
 use crate::models::request::price_request::GetPriceRequest;
+use crate::models::response::chart_response::ChartResponse;
 use crate::models::response::price_response::PriceResponse;
 use crate::repositories::AppRepositories;
-use crate::utils::commons::{calculate_pagination, construct_response, construct_pagination_response, pagination_response};
+use crate::utils::commons::{calculate_pagination, construct_pagination_response, construct_response, pagination_response};
 use actix_web::{post, web, HttpResponse, Responder};
 use bson::doc;
 use serde_json::Value;
@@ -98,8 +98,8 @@ pub async fn get_charts(request: web::Json<GetChartsRequest>) -> impl Responder 
     // ];
 
     match reqwest::get(url).await {
-        Ok(response) => match response.json::<Vec<ChartResponseDto>>().await {
-            Ok(data) => HttpResponse::Ok().json(construct_response::<Vec<ChartResponseDto>>(
+        Ok(response) => match response.json::<Vec<ChartResponse>>().await {
+            Ok(data) => HttpResponse::Ok().json(construct_response::<Vec<ChartResponse>>(
                 Some(data),
                 SUCCESS_MESSAGE,
                 SUCCESS_CODE,
