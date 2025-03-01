@@ -17,8 +17,12 @@ COPY . .
 RUN cargo build --release
 
 # Tahap 4: Gunakan runtime yang lebih ringan
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 WORKDIR /app
+
+# Install OpenSSL 3 dan sertifikat SSL di runtime stage
+RUN apt-get update && apt-get install -y libssl3 ca-certificates && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /app/target/release/crypto-fun /app/
 
 # Expose port Actix Web
