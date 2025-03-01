@@ -1,5 +1,5 @@
 use crate::database::collections::price_collection::PriceCollection;
-use bson::{doc, to_document};
+use bson::{doc, to_document, Document};
 use futures::TryStreamExt;
 use mongodb::{Collection, Database};
 
@@ -43,5 +43,10 @@ impl PriceRepository {
             .await?;
         let prices: Vec<PriceCollection> = cursor.try_collect().await?;
         Ok(prices)
+    }
+    
+    pub async fn counts(&self, filter: Document) -> Result<u64, mongodb::error::Error> {
+        let count = self.collection.count_documents(filter).await?;
+        Ok(count)
     }
 }
