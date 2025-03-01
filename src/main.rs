@@ -28,9 +28,9 @@ async fn main() -> std::io::Result<()> {
             .expect("Failed to connect to MongoDB"),
     );
 
-    let db_cloned = Arc::clone(&db);
     let need_fetch = env::var("NEED_FETCH_DATA").unwrap_or_else(|_| "false".to_string());
     if need_fetch == "true" {
+        let db_cloned = Arc::clone(&db);
         tokio::spawn(async move {
             fetch_bubble_price(db_cloned).await;
         });

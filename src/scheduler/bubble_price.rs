@@ -28,7 +28,9 @@ pub async fn fetch_bubble_price(db: Arc<Database>) {
         let price_repo_clone = Arc::clone(&price_repository);
         fetch_data(&source_host, &currency_names, price_repo_clone).await;
 
-        tokio::time::sleep(tokio::time::Duration::from_secs(60)).await;
+        let interval = env::var("FETCH_INTERVAL").unwrap_or_else(|_| "60".to_string());
+        let interval = interval.parse::<u64>().unwrap_or(60);
+        tokio::time::sleep(tokio::time::Duration::from_secs(interval)).await;
     }
 }
 
