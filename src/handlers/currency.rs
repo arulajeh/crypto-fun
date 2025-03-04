@@ -7,6 +7,7 @@ use serde_json::Value;
 
 #[get("/currency")]
 pub async fn get_currency(repository: web::Data<AppRepositories>) -> impl Responder {
+    println!("incoming request get currency");
     match repository.currency.get_all_currency().await {
         Ok(currencies) => {
             let list_currency: Vec<CurrencyResponse> = currencies

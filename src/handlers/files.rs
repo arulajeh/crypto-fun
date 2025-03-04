@@ -7,6 +7,7 @@ use std::env;
 
 #[get("/logo/{file_name}")]
 pub async fn proxy_image(path: web::Path<String>) -> impl Responder {
+    println!("incoming request get logo {}", path);
     let file_name = path.into_inner();
     let source_host = env::var("DATA_SOURCE_HOST").expect("DATA_SOURCE_HOST must be set");
     let source_url = format!("{}/data/logos/{}", source_host, file_name);

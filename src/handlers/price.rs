@@ -18,6 +18,7 @@ pub async fn get_price(
     request: web::Json<GetPriceRequest>,
     repository: web::Data<AppRepositories>,
 ) -> impl Responder {
+    println!("incoming request get price {:?}", request);
     let (skip, limit, page) = calculate_pagination(request.pagination.clone());
     match repository
         .price
@@ -72,6 +73,7 @@ pub async fn get_price(
 
 #[post("/charts")]
 pub async fn get_charts(request: web::Json<GetChartsRequest>) -> impl Responder {
+    println!("incoming request get charts {:?}", request);
     let source_host = env::var("DATA_SOURCE_HOST").expect("DATA_SOURCE_HOST must be set");
     let intervals = vec!["hour", "day", "week", "month", "year"];
     let futures = intervals.into_iter().map(|interval| {
