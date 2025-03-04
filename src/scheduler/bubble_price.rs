@@ -46,6 +46,13 @@ async fn fetch_data(host: &str, currency_names: &[String], price_repository: Arc
                 Ok(response) => match response.json::<Vec<CryptoDataDto>>().await {
                     Ok(data) => {
                         for crypto_price in data {
+
+                            let image_name = match crypto_price.image.clone() {
+                                Some(image) => image.split("/").last().unwrap().to_string(),
+                                None => "".to_string(),
+                            };
+
+                            let image = format!("logo/{}", image_name);
                             let price = PriceCollection {
                                 object_id: None,
                                 id: crypto_price.id,
@@ -53,7 +60,7 @@ async fn fetch_data(host: &str, currency_names: &[String], price_repository: Arc
                                 slug: crypto_price.slug,
                                 symbol: crypto_price.symbol,
                                 dominance: crypto_price.dominance,
-                                image: crypto_price.image,
+                                image: Option::from(image),
                                 rank: crypto_price.rank,
                                 stable: crypto_price.stable,
                                 price: crypto_price.price,

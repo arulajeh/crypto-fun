@@ -28,8 +28,9 @@ pub async fn get_price(
             let total_data = repository
                 .price
                 .counts(doc! {"currency": &request.currency})
-                .await
+                .await 
                 .unwrap_or(0);
+            let base_path = env::var("BASE_PATH").expect("BASE_PATH must be set");
             let list_data: Vec<PriceResponse> = data
                 .into_iter()
                 .map(|data| PriceResponse {
@@ -38,7 +39,10 @@ pub async fn get_price(
                     slug: data.slug,
                     symbol: data.symbol,
                     dominance: data.dominance,
-                    image: data.image,
+                    image: match data.image {
+                        Some(image) => format!("{}/{}", base_path, image).into(),
+                        None => Option::from("".to_string()),
+                    },
                     rank: data.rank,
                     stable: data.stable,
                     price: data.price,
