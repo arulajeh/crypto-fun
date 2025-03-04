@@ -16,6 +16,7 @@ use actix_web::{web, App, HttpServer};
 use dotenvy::dotenv;
 use std::env;
 use std::sync::Arc;
+use crate::handlers::files::proxy_image;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -43,6 +44,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_currency)
             .service(get_price)
             .service(get_charts)
+            .service(proxy_image)
             .default_service(web::route().to(default))
     })
     .bind(format!("0.0.0.0:{}", port))?
