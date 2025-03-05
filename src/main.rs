@@ -5,18 +5,17 @@ mod repositories;
 mod scheduler;
 mod utils;
 mod constant;
+mod routes;
 
 use crate::database::connect_mongodb;
-use crate::handlers::currency::get_currency;
 use crate::handlers::default::default;
-use crate::handlers::price::{get_charts, get_price};
 use crate::repositories::AppRepositories;
+use crate::routes::configure_routes;
 use crate::scheduler::bubble_price::fetch_bubble_price;
 use actix_web::{web, App, HttpServer};
 use dotenvy::dotenv;
 use std::env;
 use std::sync::Arc;
-use crate::handlers::files::proxy_image;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -41,10 +40,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::from(app_repositories.clone()))
-            .service(get_currency)
-            .service(get_price)
-            .service(get_charts)
-            .service(proxy_image)
+            .configure(configure_routes)
             .default_service(web::route().to(default))
     })
     .bind(format!("0.0.0.0:{}", port))?

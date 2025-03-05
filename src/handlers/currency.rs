@@ -5,7 +5,7 @@ use crate::utils::commons::construct_response;
 use actix_web::{get, web, HttpResponse, Responder};
 use serde_json::Value;
 
-#[get("/currency")]
+#[get("")]
 pub async fn get_currency(repository: web::Data<AppRepositories>) -> impl Responder {
     println!("incoming request get currency");
     match repository.currency.get_all_currency().await {

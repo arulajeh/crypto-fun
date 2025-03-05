@@ -6,7 +6,7 @@ use serde_json::Value;
 use std::env;
 
 #[get("/logo/{file_name}")]
-pub async fn proxy_image(path: web::Path<String>) -> impl Responder {
+pub async fn proxy_logo(path: web::Path<String>) -> impl Responder {
     println!("incoming request get logo {}", path);
     let file_name = path.into_inner();
     let source_host = env::var("DATA_SOURCE_HOST").expect("DATA_SOURCE_HOST must be set");

@@ -13,7 +13,7 @@ use futures::future::join_all;
 use serde_json::Value;
 use std::env;
 
-#[post("/price")]
+#[post("")]
 pub async fn get_price(
     request: web::Json<GetPriceRequest>,
     repository: web::Data<AppRepositories>,
@@ -29,7 +29,7 @@ pub async fn get_price(
             let total_data = repository
                 .price
                 .counts(doc! {"currency": &request.currency})
-                .await 
+                .await
                 .unwrap_or(0);
             let base_path = env::var("BASE_PATH").expect("BASE_PATH must be set");
             let list_data: Vec<PriceResponse> = data
