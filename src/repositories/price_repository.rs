@@ -72,4 +72,32 @@ impl PriceRepository {
         let prices: Vec<PriceCollection> = cursor.try_collect().await?;
         Ok(prices)
     }
+
+    pub async fn search_crypto(
+        &self,
+        query: &str,
+        currency: &str,
+        limit: u64,
+    ) -> Result<Vec<PriceCollection>, mongodb::error::Error> {
+        // Case insensitive regex search on name and symbol
+        let regex_pattern = format!("(?i){}", regex::escape(query));
+
+        let filter = doc! {
+            "currency": currency,
+            "$or": [
+                {"name": {"$regex": &regex_pattern, "$options": "i"}},
+                {"symbol": {"$regex": &regex_pattern, "$options": "i"}}
+            ]
+        };
+
+        let cursor = self
+            .collection
+            .find(filter)
+            .limit(limit as i64)
+            .sort(doc! {"rank": 1})
+            .await?;
+
+        let prices: Vec<PriceCollection> = cursor.try_collect().await?;
+        Ok(prices)
+    }
 }

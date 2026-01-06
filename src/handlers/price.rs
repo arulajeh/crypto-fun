@@ -5,13 +5,15 @@ use crate::models::request::price_request::GetPriceRequest;
 use crate::models::response::bubble_response::BubbleResponse;
 use crate::models::response::chart_response::{ChartResponse, ChartTicks};
 use crate::models::response::price_response::PriceResponse;
+use crate::models::response::search_response::SearchResponse;
 use crate::repositories::AppRepositories;
 use crate::utils::commons::{
     calculate_pagination, construct_pagination_response, construct_response, pagination_response,
 };
-use actix_web::{post, web, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpResponse, Responder};
 use bson::doc;
 use futures::future::join_all;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::env;
 
@@ -149,6 +151,74 @@ pub async fn get_bubbles(
 
             HttpResponse::Ok().json(construct_response::<Vec<BubbleResponse>>(
                 Some(bubbles),
+                SUCCESS_MESSAGE,
+                SUCCESS_CODE,
+            ))
+        }
+        Err(e) => HttpResponse::InternalServerError().json(construct_response::<Value>(
+            None,
+            &e.to_string(),
+            GENERAL_ERROR_CODE,
+        )),
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct SearchQuery {
+    pub q: String,
+    #[serde(default = "default_currency")]
+    pub currency: String,
+    #[serde(default = "default_search_limit")]
+    pub limit: u64,
+}
+
+fn default_currency() -> String {
+    "USD".to_string()
+}
+
+fn default_search_limit() -> u64 {
+    10
+}
+
+#[get("/search")]
+pub async fn search_price(
+    query: web::Query<SearchQuery>,
+    repository: web::Data<AppRepositories>,
+) -> impl Responder {
+    println!("incoming search request: query={}, currency={}", query.q, query.currency);
+
+    if query.q.trim().is_empty() {
+        return HttpResponse::BadRequest().json(construct_response::<Value>(
+            None,
+            "Search query cannot be empty",
+            GENERAL_ERROR_CODE,
+        ));
+    }
+
+    match repository
+        .price
+        .search_crypto(&query.q, &query.currency.to_lowercase(), query.limit)
+        .await
+    {
+        Ok(data) => {
+            let base_path = env::var("BASE_PATH").expect("BASE_PATH must be set");
+            let results: Vec<SearchResponse> = data
+                .into_iter()
+                .map(|item| SearchResponse {
+                    id: item.id,
+                    name: item.name,
+                    symbol: item.symbol,
+                    rank: item.rank,
+                    price: item.price,
+                    image: match item.image {
+                        Some(image) => format!("{}/{}", base_path, image).into(),
+                        None => Option::from("".to_string()),
+                    },
+                })
+                .collect();
+
+            HttpResponse::Ok().json(construct_response::<Vec<SearchResponse>>(
+                Some(results),
                 SUCCESS_MESSAGE,
                 SUCCESS_CODE,
             ))

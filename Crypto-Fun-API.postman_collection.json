@@ -170,6 +170,68 @@
 						"description": "Get bubble chart data excluding stablecoins (filters out USDT, USDC, etc)"
 					},
 					"response": []
+				},
+				{
+					"name": "Search Cryptocurrency",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/price/search?q=bitcoin&currency=USD&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"price",
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "bitcoin",
+									"description": "Search query (name or symbol)"
+								},
+								{
+									"key": "currency",
+									"value": "USD",
+									"description": "Currency (default: USD)"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Max results (default: 10)"
+								}
+							]
+						},
+						"description": "Search cryptocurrency by name or symbol (case insensitive)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search by Symbol",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/price/search?q=btc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"price",
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "btc",
+									"description": "Search by symbol"
+								}
+							]
+						},
+						"description": "Search cryptocurrency by symbol (uses default currency USD and limit 10)"
+					},
+					"response": []
 				}
 			],
 			"description": "Price data and chart endpoints"
