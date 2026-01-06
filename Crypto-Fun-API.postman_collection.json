@@ -232,6 +232,51 @@
 						"description": "Search cryptocurrency by symbol (uses default currency USD and limit 10)"
 					},
 					"response": []
+				},
+				{
+					"name": "Get Price Detail by Slug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/price/bitcoin?currency=USD",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"price",
+								"bitcoin"
+							],
+							"query": [
+								{
+									"key": "currency",
+									"value": "USD",
+									"description": "Currency (default: USD)"
+								}
+							]
+						},
+						"description": "Get detailed information for a specific cryptocurrency by slug or id"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Price Detail by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/price/ethereum",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"price",
+								"ethereum"
+							]
+						},
+						"description": "Get detailed cryptocurrency information (uses default currency USD)"
+					},
+					"response": []
 				}
 			],
 			"description": "Price data and chart endpoints"

@@ -74,7 +74,7 @@ async fn fetch_data(host: &str, currency_names: &[String], price_repository: Arc
                                 None => "".to_string(),
                             };
 
-                            let image = format!("logo/{}", image_name);
+                            let image = format!("files/logo/{}", image_name);
                             let price = PriceCollection {
                                 object_id: None,
                                 id: crypto_price.id,

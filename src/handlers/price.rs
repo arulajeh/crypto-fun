@@ -1,4 +1,4 @@
-use crate::constant::response_code::{GENERAL_ERROR_CODE, SUCCESS_CODE, SUCCESS_MESSAGE};
+use crate::constant::response_code::{GENERAL_ERROR_CODE, NOT_FOUND_CODE, NOT_FOUND_MESSAGE, SUCCESS_CODE, SUCCESS_MESSAGE};
 use crate::models::request::bubble_request::BubbleRequest;
 use crate::models::request::charts_request::GetChartsRequest;
 use crate::models::request::price_request::GetPriceRequest;
@@ -221,6 +221,71 @@ pub async fn search_price(
                 Some(results),
                 SUCCESS_MESSAGE,
                 SUCCESS_CODE,
+            ))
+        }
+        Err(e) => HttpResponse::InternalServerError().json(construct_response::<Value>(
+            None,
+            &e.to_string(),
+            GENERAL_ERROR_CODE,
+        )),
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct DetailQuery {
+    #[serde(default = "default_currency")]
+    pub currency: String,
+}
+
+#[get("/{slug}")]
+pub async fn get_price_detail(
+    slug: web::Path<String>,
+    query: web::Query<DetailQuery>,
+    repository: web::Data<AppRepositories>,
+) -> impl Responder {
+    let slug = slug.into_inner();
+    println!("incoming request get price detail: slug={}, currency={}", slug, query.currency);
+
+    match repository
+        .price
+        .get_by_slug(&slug, &query.currency.to_lowercase())
+        .await
+    {
+        Ok(Some(data)) => {
+            let base_path = env::var("BASE_PATH").expect("BASE_PATH must be set");
+            let price_response = PriceResponse {
+                id: data.id,
+                name: data.name,
+                slug: data.slug,
+                symbol: data.symbol,
+                dominance: data.dominance,
+                image: match data.image {
+                    Some(image) => format!("{}/{}", base_path, image).into(),
+                    None => Option::from("".to_string()),
+                },
+                rank: data.rank,
+                stable: data.stable,
+                price: data.price,
+                marketcap: data.marketcap,
+                volume: data.volume,
+                cg_id: data.cg_id,
+                symbols: data.symbols,
+                performance: data.performance,
+                rank_diffs: data.rank_diffs,
+                exchange_prices: data.exchange_prices,
+            };
+
+            HttpResponse::Ok().json(construct_response::<PriceResponse>(
+                Some(price_response),
+                SUCCESS_MESSAGE,
+                SUCCESS_CODE,
+            ))
+        }
+        Ok(None) => {
+            HttpResponse::NotFound().json(construct_response::<Value>(
+                None,
+                NOT_FOUND_MESSAGE,
+                NOT_FOUND_CODE,
             ))
         }
         Err(e) => HttpResponse::InternalServerError().json(construct_response::<Value>(

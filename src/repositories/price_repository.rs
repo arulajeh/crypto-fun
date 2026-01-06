@@ -100,4 +100,21 @@ impl PriceRepository {
         let prices: Vec<PriceCollection> = cursor.try_collect().await?;
         Ok(prices)
     }
+
+    pub async fn get_by_slug(
+        &self,
+        slug: &str,
+        currency: &str,
+    ) -> Result<Option<PriceCollection>, mongodb::error::Error> {
+        let filter = doc! {
+            "currency": currency,
+            "$or": [
+                {"slug": slug},
+                {"id": slug}
+            ]
+        };
+
+        let result = self.collection.find_one(filter).await?;
+        Ok(result)
+    }
 }
