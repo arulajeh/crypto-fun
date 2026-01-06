@@ -1,6 +1,8 @@
 use crate::constant::response_code::{GENERAL_ERROR_CODE, SUCCESS_CODE, SUCCESS_MESSAGE};
+use crate::models::request::bubble_request::BubbleRequest;
 use crate::models::request::charts_request::GetChartsRequest;
 use crate::models::request::price_request::GetPriceRequest;
+use crate::models::response::bubble_response::BubbleResponse;
 use crate::models::response::chart_response::{ChartResponse, ChartTicks};
 use crate::models::response::price_response::PriceResponse;
 use crate::repositories::AppRepositories;
@@ -109,4 +111,52 @@ pub async fn get_charts(request: web::Json<GetChartsRequest>) -> impl Responder 
         SUCCESS_MESSAGE,
         SUCCESS_CODE,
     ))
+}
+
+#[post("/bubbles")]
+pub async fn get_bubbles(
+    request: web::Json<BubbleRequest>,
+    repository: web::Data<AppRepositories>,
+) -> impl Responder {
+    println!("incoming request get bubbles {:?}", request);
+
+    match repository
+        .price
+        .get_bubbles_data(&request.currency.to_lowercase(), request.limit, request.exclude_stablecoins)
+        .await
+    {
+        Ok(data) => {
+            let base_path = env::var("BASE_PATH").expect("BASE_PATH must be set");
+            let bubbles: Vec<BubbleResponse> = data
+                .into_iter()
+                .map(|item| BubbleResponse {
+                    id: item.id,
+                    name: item.name,
+                    symbol: item.symbol,
+                    rank: item.rank,
+                    price: item.price,
+                    marketcap: item.marketcap,
+                    volume: item.volume,
+                    dominance: item.dominance,
+                    performance: item.performance,
+                    image: match item.image {
+                        Some(image) => format!("{}/{}", base_path, image).into(),
+                        None => Option::from("".to_string()),
+                    },
+                    stable: item.stable,
+                })
+                .collect();
+
+            HttpResponse::Ok().json(construct_response::<Vec<BubbleResponse>>(
+                Some(bubbles),
+                SUCCESS_MESSAGE,
+                SUCCESS_CODE,
+            ))
+        }
+        Err(e) => HttpResponse::InternalServerError().json(construct_response::<Value>(
+            None,
+            &e.to_string(),
+            GENERAL_ERROR_CODE,
+        )),
+    }
 }

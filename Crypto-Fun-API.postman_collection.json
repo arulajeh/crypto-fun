@@ -1,0 +1,231 @@
+{
+	"info": {
+		"_postman_id": "crypto-fun-api-collection",
+		"name": "Crypto Fun API",
+		"description": "API collection for Crypto Fun Backend service - cryptocurrency price tracking and data visualization",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Currency",
+			"item": [
+				{
+					"name": "Get All Currencies",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/currency",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"currency"
+							]
+						},
+						"description": "Get list of all available currencies"
+					},
+					"response": []
+				}
+			],
+			"description": "Currency management endpoints"
+		},
+		{
+			"name": "Price",
+			"item": [
+				{
+					"name": "Get Prices (Paginated)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"currency\": \"USD\",\n    \"pagination\": {\n        \"page\": 1,\n        \"limit\": 20\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/price",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"price"
+							]
+						},
+						"description": "Get cryptocurrency prices for a specific currency with pagination support"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Prices (Without Pagination)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"currency\": \"USD\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/price",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"price"
+							]
+						},
+						"description": "Get cryptocurrency prices without pagination (returns default page size)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Chart Data",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"from\": \"btc\",\n    \"to\": \"USD\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/price/charts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"price",
+								"charts"
+							]
+						},
+						"description": "Get chart data for multiple time intervals (hour, day, week, month, year) for a specific cryptocurrency pair"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Bubbles Data",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"currency\": \"USD\",\n    \"limit\": 1000,\n    \"exclude_stablecoins\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/price/bubbles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"price",
+								"bubbles"
+							]
+						},
+						"description": "Get bulk cryptocurrency data for bubble chart visualization (up to 1000 coins, no pagination)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Bubbles Data (Exclude Stablecoins)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"currency\": \"USD\",\n    \"limit\": 500,\n    \"exclude_stablecoins\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/price/bubbles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"price",
+								"bubbles"
+							]
+						},
+						"description": "Get bubble chart data excluding stablecoins (filters out USDT, USDC, etc)"
+					},
+					"response": []
+				}
+			],
+			"description": "Price data and chart endpoints"
+		},
+		{
+			"name": "Files",
+			"item": [
+				{
+					"name": "Get Logo (PNG)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/files/logo/bitcoin.png",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"files",
+								"logo",
+								"bitcoin.png"
+							]
+						},
+						"description": "Proxy endpoint to fetch cryptocurrency logo images (PNG format)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Logo (SVG)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/files/logo/ethereum.svg",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"files",
+								"logo",
+								"ethereum.svg"
+							]
+						},
+						"description": "Proxy endpoint to fetch cryptocurrency logo images (SVG format)"
+					},
+					"response": []
+				}
+			],
+			"description": "Static file and logo proxy endpoints"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

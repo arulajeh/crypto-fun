@@ -5,6 +5,7 @@ use crate::models::dto::crypto_bubble_response_dto::{
 use crate::repositories::currency_repository::CurrencyRepository;
 use crate::repositories::price_repository::PriceRepository;
 use mongodb::Database;
+use serde_json;
 use std::env;
 use std::sync::Arc;
 
@@ -13,7 +14,8 @@ pub async fn fetch_bubble_price(db: Arc<Database>) {
     let currency_repository = CurrencyRepository::new(&db);
     let currencies = match currency_repository.get_all_currency().await {
         Ok(data) => data,
-        Err(_) => {
+        Err(e) => {
+            println!("Error fetching currencies: {:?}", e);
             println!("Failed to fetch currency data");
             return;
         }
@@ -42,8 +44,28 @@ async fn fetch_data(host: &str, currency_names: &[String], price_repository: Arc
 
         tokio::spawn(async move {
             let url = format!("{}/data/bubbles1000.{}.json", host, currency_name.to_lowercase());
-            match reqwest::get(url).await {
-                Ok(response) => match response.json::<Vec<CryptoDataDto>>().await {
+            println!("Fetching from URL: {}", &url);
+
+            match reqwest::get(&url).await {
+                Ok(response) => {
+                    let status = response.status();
+
+                    if !status.is_success() {
+                        println!("Failed to fetch data for {} - HTTP Status: {}", currency_name, status);
+                        return;
+                    }
+
+                    // Get response text first for debugging
+                    let response_text = match response.text().await {
+                        Ok(text) => text,
+                        Err(e) => {
+                            println!("Failed to read response body for {}: {:?}", currency_name, e);
+                            return;
+                        }
+                    };
+
+                    // Try to parse JSON
+                    match serde_json::from_str::<Vec<CryptoDataDto>>(&response_text) {
                     Ok(data) => {
                         for crypto_price in data {
 
@@ -131,11 +153,13 @@ async fn fetch_data(host: &str, currency_names: &[String], price_repository: Arc
                         }
                     }
                     Err(e) => {
-                        println!("Error: {:?}", e);
-                        println!("Failed to fetch data for {}", currency_name);
+                        println!("JSON Parse Error for {}: {:?}", currency_name, e);
+                        println!("Failed to parse JSON response for {}", currency_name);
                     }
+                }
                 },
-                Err(_) => {
+                Err(e) => {
+                    println!("HTTP Request Error for {}: {:?}", currency_name, e);
                     println!("Failed to fetch data for {}", currency_name);
                 }
             }
